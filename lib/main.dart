@@ -10,26 +10,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         fontFamily: "RobotoCondensed",
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Baker percentage'),
+      home: BakerApp(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
-
+class BakerApp extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _BakerAppState createState() => _BakerAppState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _BakerAppState extends State<BakerApp> {
   var bread = BreadViewModel();
   var textStyle = TextStyle(
       fontFamily: "RobotoCondensed",
