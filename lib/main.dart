@@ -42,8 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: FractionallySizedBox(
-          heightFactor: 1,
+        child: Center(
           child: StaggeredGridView.count(
             crossAxisCount: 2,
             mainAxisSpacing: 4,
@@ -57,22 +56,10 @@ class _MyHomePageState extends State<MyHomePage> {
               const StaggeredTile.extent(1, 120),
               const StaggeredTile.extent(1, 120),
               const StaggeredTile.extent(1, 120),
+              const StaggeredTile.extent(2, 120),
             ],
             children: <Widget>[
-              ValueBox(
-                isPercent: true,
-                label: "Hydrering %",
-                initialValue: 0.8,
-                max: 1,
-                min: 0.5,
-                onChange: (double value) {
-                  setState(() {
-                    bread.hydrationPercentage = value;
-                  });
-                },
-                background: Gradients.tameer,
-              ),
-
+              Container(),
               ValueBox(
                 label: "Mjöl(gram)",
                 min: 300,
@@ -85,16 +72,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 background: Gradients.blush,
               ),
-
               _buildGridCell(
                 label: "Vätska i autolys",
                 value: "${(bread.waterInAutolys).round()}",
                 background: Gradients.blush,
               ),
-              _buildGridCell(
-                  label: "Levain(%)",
-                  value: "${(bread.levainPercentage * 100).round()}",
-                  background: Gradients.blush),
+              ValueBox(
+                label: "Levain(%)",
+                background: Gradients.blush,
+                isPercent: true,
+                initialValue: 0.2,
+                min: 0.0,
+                max: 0.5,
+                onChange: (value) {
+                  setState(() {
+                    bread.levainPercentage = value;
+                  });
+                },
+              ),
               _buildGridCell(
                   label: "Levain(gram)",
                   value: "${bread.levainWeight}",
@@ -112,26 +107,23 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
               ),
-              // _buildGridCell(
-              //     label: "Salt(%)",
-              //     value: "${(bread.saltPercentage * 100).round()}",
-              //     background: Gradients.taitanum),
               _buildGridCell(
                   label: "Salt(gram)",
                   value: "${bread.saltWeight}",
                   background: Gradients.taitanum),
-
-              // Padding(
-              //   padding: EdgeInsets.all(40),
-              //   child: Column(
-              //     children: <Widget>[
-              //       _flour(),
-              //       _hydration(),
-              //       _salt(),
-              //       _levain(),
-              //     ],
-              //   ),
-              // ),
+              ValueBox(
+                isPercent: true,
+                label: "Hydrering %",
+                initialValue: 0.8,
+                max: 1,
+                min: 0.5,
+                onChange: (double value) {
+                  setState(() {
+                    bread.hydrationPercentage = value;
+                  });
+                },
+                background: Gradients.tameer,
+              ),
             ],
           ),
         ),
@@ -161,63 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
           Text(value, style: textStyle),
         ],
       ),
-    );
-  }
-
-  Column _salt() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text("Salt procent"),
-        Slider(
-          value: bread.saltPercentage,
-          min: 0.0,
-          max: 0.1,
-          onChanged: (value) {
-            setState(() {
-              bread.saltPercentage = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Column _levain() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text("Levain procent"),
-        Slider(
-          value: bread.levainPercentage,
-          min: 0.0,
-          max: 0.5,
-          onChanged: (value) {
-            setState(() {
-              bread.levainPercentage = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Column _hydration() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text("Hydrering"),
-        Slider(
-          value: bread.hydrationPercentage,
-          max: 1,
-          min: 0.5,
-          onChanged: (value) {
-            setState(() {
-              bread.hydrationPercentage = value;
-            });
-          },
-        ),
-      ],
     );
   }
 }
