@@ -176,19 +176,22 @@ class ValueBox extends StatefulWidget {
   _ValueBoxState createState() => _ValueBoxState();
 }
 
+enum DragStatus { dragging, notDragging }
+
 class _ValueBoxState extends State<ValueBox> {
   double maxWidth;
   double dragPosition;
   double value;
-  int readableValue;
+  double readableValue;
   int percentFactor;
+  DragStatus status;
   @override
   void initState() {
     super.initState();
     dragPosition = _unlerp(widget.initialValue);
     value = widget.initialValue;
     percentFactor = widget.isPercent ? 100 : 1;
-    readableValue = (value * percentFactor).toInt();
+    readableValue = (value * percentFactor).roundToDouble();
   }
 
   double _lerp(double value) {
@@ -206,6 +209,38 @@ class _ValueBoxState extends State<ValueBox> {
         : 0.0;
   }
 
+  void _updateSlider(double localPos) {
+    setState(() {
+      dragPosition = (localPos / maxWidth);
+      value = _lerp(dragPosition);
+      readableValue = (value * percentFactor);
+      widget.onChange(value);
+    });
+  }
+
+  void _onDragStart(DragDownDetails details) {
+    status = DragStatus.dragging;
+    var localPos = details.localPosition.dx.clamp(0, maxWidth);
+    _updateSlider(localPos);
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    setState(() {
+      status = DragStatus.notDragging;
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    setState(() {
+      status = DragStatus.notDragging;
+    });
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    var localPos = details.localPosition.dx.clamp(0, maxWidth);
+    _updateSlider(localPos);
+  }
+
   var textStyle = TextStyle(
       fontFamily: "RobotoCondensed",
       fontSize: 18,
@@ -214,50 +249,54 @@ class _ValueBoxState extends State<ValueBox> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 100,
-      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        gradient: widget.background,
-      ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragUpdate: (DragUpdateDetails details) {
-          var localPos = details.localPosition.dx.clamp(0, maxWidth);
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onPanUpdate: _onDragUpdate,
+      onPanDown: _onDragStart,
+      onPanEnd: _onDragEnd,
+      onTapUp: _onTapUp,
+      child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+        maxWidth = constraints.maxWidth;
 
-          setState(() {
-            dragPosition = (localPos / maxWidth);
-            value = _lerp(dragPosition);
-            readableValue = (value * percentFactor).round();
-            widget.onChange(value);
-          });
-        },
-        child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-          maxWidth = constraints.maxWidth;
-          return Stack(
-            children: <Widget>[
-              Container(
-                width: constraints.maxWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Text(
-                      widget.label,
-                      style: textStyle,
-                    ),
-                    Text("$readableValue", style: textStyle),
-                  ],
-                ),
+        return Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            Container(
+              height: 100,
+              margin: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: widget.background,
               ),
-            ],
-          );
-        }),
-      ),
+              width: constraints.maxWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Text(
+                    widget.label,
+                    style: textStyle,
+                  ),
+                  Text(readableValue.toStringAsFixed(widget.isPercent ? 1 : 0),
+                      style: textStyle),
+                ],
+              ),
+            ),
+            AnimatedOpacity(
+              curve: Curves.easeInOut,
+              duration: Duration(milliseconds: 300),
+              opacity: status == DragStatus.dragging ? 1 : 0,
+              child: Transform(
+                  transform: Matrix4.translationValues(
+                      -maxWidth + (dragPosition * maxWidth), 0, 0),
+                  child: Container(color: Colors.white24)),
+            )
+          ],
+        );
+      }),
     );
   }
 }
